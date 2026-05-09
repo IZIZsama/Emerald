@@ -31,10 +31,14 @@
 ## 4. 各API詳細
 
 ### 4.1 飲食店一覧取得
-``` url
+```javascript
 GET /api/v1/restaurants
-Host: api.example.com
-Accept: application/json
+{
+  method: 'GET',
+  headers: {
+    'Accept': 'application/json',
+  }
+}
 ```
 
 #### 説明
@@ -78,10 +82,14 @@ Accept: application/json
 - データが0件の場合でも 200 OK を返し、`data` は空配列とする
 
 ### 4.2 飲食店詳細取得
-``` url
+```javascript
 GET /api/v1/restaurants/{id}
-Host: api.example.com
-Accept: application/json
+{
+  method: 'GET',
+  headers: {
+    'Accept': 'application/json',
+  }
+}
 ```
 
 #### 説明
@@ -109,11 +117,18 @@ Accept: application/json
 - 500 Internal Server Error: 詳細情報の取得処理で予期しないエラーが発生した場合
 
 ### 4.3 店舗ログイン
-``` url
+```javascript
 POST /api/v1/store/login
-Host: api.example.com
-Content-Type: application/json
-Accept: application/json
+{
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    login_id: 'cafe_admin',
+    password: 'password123',
+  })
+}
 ```
 
 #### 説明
@@ -140,12 +155,19 @@ Accept: application/json
 - 401 Unauthorized: 店舗IDまたはパスワードが正しくない場合
 
 ### 4.4 待ち時間更新
-``` url
+```javascript
 PATCH /api/v1/store/{id}/wait-time
-Host: api.example.com
-Content-Type: application/json
-Accept: application/json
-Authorization: Bearer <JWT_TOKEN>
+{
+  method: 'PATCH',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer <JWT_TOKEN>',
+  },
+  body: JSON.stringify({
+    current_wait_min: 20,
+    current_queue_count: 10,
+  })
+}
 ```
 
 #### 説明
@@ -181,10 +203,14 @@ Authorization: Bearer <JWT_TOKEN>
 - 404 Not Found: 指定した店舗IDが存在しない場合
 
 ### 4.5 マップ表示データ取得
-``` url
+```javascript
 GET /api/v1/map/facilities
-Host: api.example.com
-Accept: application/json
+{
+  method: 'GET',
+  headers: {
+    'Accept': 'application/json',
+  }
+}
 ```
 
 #### 説明
