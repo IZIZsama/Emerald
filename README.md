@@ -40,6 +40,7 @@ discordを使用
 - mainは直接いじらない
 
 ## URL
+- [企画・技術選定メモ](https://docs.google.com/document/d/1gPD1SgeKTg1AOocWIwHxVsb_DS3MqJdEwdij2L4ADd8/edit?tab=t.0#heading=h.egs1tme8qw2)
 - [frontend](./docs/frontend.md)
 - [backend](./docs/backend.md)
 - [api](./docs/api.md)
