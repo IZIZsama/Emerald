@@ -1,28 +1,52 @@
-# バックエンドAPI一覧
+# バックエンドAPI定義書
 
-## 共通仕様
+## 1. 概要
+- 対象: 京都TECH学園祭アプリ
+- 目的: 来場者向けアプリと店舗向け管理画面が利用するREST APIの仕様を定義する
+- 対象クライアント:
+	- 来場者向けWeb / モバイルアプリ
+	- 店舗向け管理画面
+
+## 2. 共通仕様
 - ベースURL: `https://api.example.com/api/v1`
 - データ形式: `application/json`
+- 日時形式: ISO 8601（例: `2026-05-09T12:34:56Z`）
 - 認証:
-	- 来場者: なし
-	- 管理者: `Authorization: Bearer <JWT>`
+	- 来場者向け: なし
+	- 店舗向け: `Authorization: Bearer <JWT>`
+- レート制限: 1000 req/min
+- バージョニング方式: URLパス `/v1/`
+- 文字コード: UTF-8
+- エラー形式: 共通エラーフォーマットを使用する
 
-## 飲食店一覧
+## 3. エンドポイント一覧
+| エンドポイント | メソッド | 認証 | 説明 |
+| --- | ---: | --- | --- |
+| /restaurants | GET | なし | 飲食店一覧取得 |
+| /restaurants/{id} | GET | なし | 飲食店詳細取得 |
+| /store/login | POST | なし | 店舗ログイン（JWT発行） |
+| /store/{id}/wait-time | PATCH | Bearer JWT | 待ち時間更新 |
+| /map/facilities | GET | なし | マップ表示データ取得 |
+
+## 4. 各API詳細
+
+### 4.1 飲食店一覧取得
 ``` url
 GET /api/v1/restaurants
 Host: api.example.com
 Accept: application/json
 ```
-### 説明
-来場者向けに、注文可能な飲食店一覧を取得します。
 
-### クエリパラメータ
+#### 説明
+来場者向けに、注文可能な飲食店一覧を取得する。
+
+#### パラメータ
 | 項目 | 型 | 必須 | 説明 |
 | --- | --- | --- | --- |
 | page | int | 任意 | ページ番号 |
 | limit | int | 任意 | 1ページあたりの件数 |
 
-### 成功レスポンス (200)
+#### 成功レスポンス (200)
 ```json
 {
 	"data": [
@@ -40,29 +64,35 @@ Accept: application/json
 		}
 	],
 	"meta": {
-		"total": 10
+		"total": 10,
+		"page": 1,
+		"limit": 20
 	}
 }
 ```
 
-### エラー例
+#### エラー例
 - 500 Internal Server Error: 一覧取得処理で予期しないエラーが発生した場合
 
-## 飲食店詳細
+#### 備考
+- データが0件の場合でも 200 OK を返し、`data` は空配列とする
+
+### 4.2 飲食店詳細取得
 ``` url
 GET /api/v1/restaurants/{id}
 Host: api.example.com
 Accept: application/json
 ```
-### 説明
-来場者向けに、飲食店の詳細、待ち時間、受け取り番号一覧を取得します。
 
-### パスパラメータ
+#### 説明
+来場者向けに、飲食店の詳細、待ち時間、受け取り番号一覧を取得する。
+
+#### パラメータ
 | 項目 | 型 | 必須 | 説明 |
 | --- | --- | --- | --- |
 | id | string | 必須 | 飲食店ID |
 
-### 成功レスポンス (200)
+#### 成功レスポンス (200)
 ```json
 {
 	"id": "store-101",
@@ -74,21 +104,22 @@ Accept: application/json
 }
 ```
 
-### エラー例
+#### エラー例
 - 404 Not Found: 指定した飲食店IDが存在しない場合
 - 500 Internal Server Error: 詳細情報の取得処理で予期しないエラーが発生した場合
 
-## 店舗ログイン
+### 4.3 店舗ログイン
 ``` url
 POST /api/v1/store/login
 Host: api.example.com
 Content-Type: application/json
 Accept: application/json
 ```
-### 説明
-店舗IDとパスワードでログインし、JWTを発行します。
 
-### リクエストボディ
+#### 説明
+店舗IDとパスワードでログインし、JWTを発行する。
+
+#### リクエストボディ
 ```json
 {
 	"login_id": "cafe_admin",
@@ -96,7 +127,7 @@ Accept: application/json
 }
 ```
 
-### 成功レスポンス (200)
+#### 成功レスポンス (200)
 ```json
 {
 	"token": "eyJhbGciOi...",
@@ -104,11 +135,11 @@ Accept: application/json
 }
 ```
 
-### エラー例
-- 400 Bad Request: login_id または password が不足している場合
+#### エラー例
+- 400 Bad Request: `login_id` または `password` が不足している場合
 - 401 Unauthorized: 店舗IDまたはパスワードが正しくない場合
 
-## 待ち時間更新
+### 4.4 待ち時間更新
 ``` url
 PATCH /api/v1/store/{id}/wait-time
 Host: api.example.com
@@ -116,15 +147,16 @@ Content-Type: application/json
 Accept: application/json
 Authorization: Bearer <JWT_TOKEN>
 ```
-### 説明
-店舗側が待ち時間や待ち人数を更新します。
 
-### パスパラメータ
+#### 説明
+店舗側が待ち時間や待ち人数を更新する。
+
+#### パラメータ
 | 項目 | 型 | 必須 | 説明 |
 | --- | --- | --- | --- |
 | id | string | 必須 | 店舗ID |
 
-### リクエストボディ
+#### リクエストボディ
 ```json
 {
 	"current_wait_min": 20,
@@ -132,7 +164,7 @@ Authorization: Bearer <JWT_TOKEN>
 }
 ```
 
-### 成功レスポンス (200)
+#### 成功レスポンス (200)
 ```json
 {
 	"id": "store-101",
@@ -142,22 +174,23 @@ Authorization: Bearer <JWT_TOKEN>
 }
 ```
 
-### エラー例
-- 400 Bad Request: current_wait_min や current_queue_count の値が不正な場合
+#### エラー例
+- 400 Bad Request: `current_wait_min` や `current_queue_count` の値が不正な場合
 - 401 Unauthorized: JWTが無効または期限切れの場合
 - 403 Forbidden: 自店舗以外の待ち時間を更新しようとした場合
 - 404 Not Found: 指定した店舗IDが存在しない場合
 
-## マップ表示データ取得
+### 4.5 マップ表示データ取得
 ``` url
 GET /api/v1/map/facilities
 Host: api.example.com
 Accept: application/json
 ```
-### 説明
-校内マップに表示する施設・ブース情報を取得します。
 
-### 成功レスポンス (200)
+#### 説明
+校内マップに表示する施設・ブース情報を取得する。
+
+#### 成功レスポンス (200)
 ```json
 {
 	"data": [
@@ -177,10 +210,11 @@ Accept: application/json
 }
 ```
 
-### エラー例
+#### エラー例
 - 500 Internal Server Error: マップ表示データの取得に失敗した場合
 
-## エラー仕様
+## 5. エラー仕様
+
 ### 共通エラーフォーマット
 ```json
 {
@@ -195,10 +229,19 @@ Accept: application/json
 }
 ```
 
-### HTTPステータスと例
-- 400 Bad Request: パラメータ不足
-- 401 Unauthorized: トークン無効/期限切れ
-- 403 Forbidden: 権限不足
-- 404 Not Found: リソース未発見
-- 429 Too Many Requests: レート超過
-- 500 Internal Server Error: サーバーエラー
+### HTTPステータスと意味
+| コード | 意味 | 主な原因 |
+| --- | --- | --- |
+| 400 | Bad Request | パラメータ不足、型不正、バリデーションエラー |
+| 401 | Unauthorized | トークン無効、期限切れ、認証失敗 |
+| 403 | Forbidden | 権限不足 |
+| 404 | Not Found | リソース未発見 |
+| 429 | Too Many Requests | レート超過 |
+| 500 | Internal Server Error | サーバーエラー |
+
+## 6. バリデーションと運用メモ
+- id下3桁を教室番号にしたっていい
+- マップは画像にしてもいい
+- ID指定APIは、存在しないIDの場合に 404 Not Found を返す
+- 店舗向け操作は、JWTの署名検証と認可チェックを必須とする
+- 数値項目は、API側で型チェックと範囲チェックを行う

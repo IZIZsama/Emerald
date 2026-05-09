@@ -1,249 +1,109 @@
-# 京都TECH学園祭 バックエンドAPI定義書
+# 京都TECH学園祭 バックエンド定義書
 
-## 1. 概要
-- 名称: 
-- バージョン: v1
-- 目的: 学園祭向けアプリのAPI
-- 対象クライアント: （例: モバイルアプリ、管理画面）
+## 1. 目的
+- 学園祭アプリ全体のバックエンド方針をまとめる
+- APIの詳細は [docs/api.md](api.md) に分離して管理する
+- DB設計の詳細は [docs/database.md](database.md) を参照する
 
-## 2. 共通仕様
-- ベースURL: `https://api.example.com/api/v1`
-- データ形式: `application/json`
-- 日時形式: ISO 8601（例: `2026-05-09T12:34:56Z`）
+## 2. システム概要
+- フロントエンド: Next.js
+- バックエンド: Laravel
+- データベース: MySQL
+- API方式: REST API
+- 通信形式: JSON
 - 認証:
-  - 来場者: なし
-  - 管理者: `Authorization: Bearer <JWT>`
-- レート制限: 1000 req/min
-- バージョニング方式: URLパス `/v1/`
+  - 来場者向け: なし
+  - 店舗向け: JWT
 
-## 3. エンドポイント一覧（概要）
-| エンドポイント | メソッド | 説明 |
-| --- | ---: | --- |
-| /restaurants | GET | 飲食店一覧取得 |
-| /restaurants/{id} | GET | 飲食店の詳細と待ち時間・受け取り可能番号一覧表示 |
-| /store/login | POST | 店舗ログイン（JWT発行） |
-| /store/{id}/wait-time | PATCH | 待ち時間更新 |
-| /map/facilities | GET | マップ表示データ取得 |
+## 3. バックエンドの責務
+- 来場者向けの一覧表示、詳細表示、マップ表示を返す
+- 店舗向けのログイン、待ち時間更新、注文管理を処理する
+- データベースへ読み書きし、画面表示用のJSONを返す
+- バリデーション、認証、認可、エラー処理を共通化する
 
-## 4. エンドポイント詳細テンプレート
-id下3桁を教室番号にしたっていい
+## 4. API仕様の参照先
+以下のAPI詳細は [docs/api.md](api.md) に記載する。
 
-### 飲食店一覧取得 
-— `GET /restaurants`
-- 説明: 来場者向けに、飲食店一覧表示のapi
-- 権限: anonymous
-- パスパラメータ:なし
-- クエリパラメータ:なし
-- リクエスト例:
-``` url
-GET /api/v1/restaurants
-Host: api.example.com
-Accept: application/json
-```
-- レスポンス例:
-```json
-{
-  "data": [
-    {
-      "id": "store-101",
-      "name": "KTCカフェ",
-      "is_open": true,
-      "wait_time": 10
-    },
-    {
-      "id": "store-102",
-      "name": "天津飯",
-      "is_open": true,
-      "wait_time": 15
-    },...
-  ],
-  "meta": {
-    "total": 10
-  }
-}
-```
-- エラー例:
-  - 500 Internal Server Error — 一覧取得処理で予期しないエラーが発生した場合
+- [飲食店一覧取得](api.md#41-飲食店一覧取得)
+- [飲食店詳細取得](api.md#42-飲食店詳細取得)
+- [店舗ログイン](api.md#43-店舗ログイン)
+- [待ち時間更新](api.md#44-待ち時間更新)
+- [マップ表示データ取得](api.md#45-マップ表示データ取得)
 
-### 飲食店詳細取得
-— `GET /restaurants/{id}`
-- 説明: 来場者向けに、飲食店の詳細、待ち時間、受け取り可能番号一覧を取得するAPI
-- 権限: anonymous
-- パスパラメータ:
-  - `id` (string) - 飲食店ID
-- クエリパラメータ:なし
-- リクエスト例:
-``` url
-GET /api/v1/restaurants/store-101
-Host: api.example.com
-Accept: application/json
+## 5. ディレクトリ構成（Laravel想定）
+```text
+backend/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Api/
+│   │   │   └── Store/
+│   │   ├── Requests/
+│   │   ├── Resources/
+│   │   └── Middleware/
+│   ├── Models/
+│   ├── Services/
+│   └── Actions/
+├── routes/
+│   ├── api.php
+│   └── web.php
+├── database/
+│   ├── migrations/
+│   ├── seeders/
+│   └── factories/
+├── config/
+├── tests/
+│   ├── Feature/
+│   └── Unit/
+└── storage/
 ```
-- レスポンス例:
-```json
-{
-  "id": "store-101",
-  "name": "KTCカフェ",
-  "description": "学園祭限定メニューを提供するカフェ",
-  "is_open": true,
-  "wait_time": 10,
-  "ticket_numbers": ["A-120", "A-121", "A-122"]
-}
-```
-- エラー例:
-  - 404 Not Found — 指定した飲食店IDが存在しない場合
-  - 500 Internal Server Error — 詳細情報の取得処理で予期しないエラーが発生した場合
 
-### 店舗ログイン
-— `POST /store/login`
-- 説明: 店舗IDとパスワードでログインし、JWTを発行するAPI
-- 権限: anonymous
-- パスパラメータ:なし
-- クエリパラメータ:なし
-- リクエスト例:
-``` url
-POST /api/v1/store/login
-Host: api.example.com
-Content-Type: application/json
-Accept: application/json
-```
-- リクエストボディ例:
-```json
-{
-  "login_id": "cafe_admin",
-  "password": "password123"
-}
-```
-- レスポンス例:
-```json
-{
-  "token": "eyJhbGciOi...",
-  "store_id": "store-101"
-}
-```
-- エラー例:
-  - 400 Bad Request — login_id または password が不足している場合
-  - 401 Unauthorized — 店舗IDまたはパスワードが正しくない場合
+### 各ディレクトリの役割
+- `app/Http/Controllers`: APIの入口。リクエストを受けてサービス層を呼ぶ
+- `app/Http/Requests`: バリデーションルールをまとめる
+- `app/Http/Resources`: レスポンスJSONの整形を行う
+- `app/Http/Middleware`: 認証や権限チェックを行う
+- `app/Models`: Eloquentモデルを置く
+- `app/Services`: 待ち時間更新や注文管理などの業務ロジックを置く
+- `app/Actions`: 単発の処理や再利用したい処理を置く
+- `routes/api.php`: APIルートを定義する
+- `database/migrations`: テーブル定義を管理する
+- `database/seeders`: 初期データやテストデータを入れる
+- `database/factories`: テスト用データを生成する
+- `tests/Feature`: APIの結合テストを置く
+- `tests/Unit`: 単体テストを置く
 
-### 待ち時間更新
-— `PATCH /store/{id}/wait-time`
-- 説明: 店舗側が待ち時間や待ち人数を更新するAPI
-- 権限: store-owner
-- パスパラメータ:
-  - `id` (string) - 店舗ID
-- クエリパラメータ:なし
-- リクエスト例:
-``` url
-PATCH /api/v1/store/store-101/wait-time
-Host: api.example.com
-Content-Type: application/json
-Accept: application/json
-Authorization: Bearer <JWT_TOKEN>
-```
-- リクエストボディ例:
-```json
-{
-  "current_wait_min": 20,
-  "current_queue_count": 10
-}
-```
-- レスポンス例:
-```json
-{
-  "id": "store-101",
-  "current_wait_min": 20,
-  "current_queue_count": 10,
-  "updated_at": "2026-05-09T12:34:56Z"
-}
-```
-- エラー例:
-  - 400 Bad Request — current_wait_min や current_queue_count の値が不正な場合
-  - 401 Unauthorized — JWTが無効または期限切れの場合
-  - 403 Forbidden — 自店舗以外の待ち時間を更新しようとした場合
-  - 404 Not Found — 指定した店舗IDが存在しない場合
+## 6. 開発時の分担イメージ
+- Controller: ルーティング直後の受付とレスポンス返却
+- Request: 入力チェック
+- Service: ビジネスロジック
+- Model: DBアクセス
+- Resource: APIレスポンス整形
+- Migration: DB設計変更
+- Test: 仕様の確認
 
-### マップ表示データ取得
-現状はっきりと決まっていないため画像でもいいかも
+## 7. 認証・権限設計
+- JWTの有効期限を設定する
+- 店舗向けのAPIはログイン後のみ利用できる
+- 管理者向け処理は店舗ID単位で認可チェックを行う
+- 店舗向けAPIの詳細なログイン仕様は [docs/api.md](api.md) を参照する
 
-— `GET /map/facilities`
-- 説明: 校内マップに表示する施設・ブース情報を取得するAPI
-- 権限: anonymous
-- パスパラメータ:なし
-- クエリパラメータ:なし
-- リクエスト例
-``` url
-GET /api/v1/map/facilities
-Host: api.example.com
-Accept: application/json
-```
-- レスポンス例:
-```json
-{
-  "data": [
-    {
-      "id": "booth-001",
-      "name": "VRお化け屋敷",
-      "x": 120,
-      "y": 80
-    },
-    {
-      "id": "facility-001",
-      "name": "本部",
-      "x": 50,
-      "y": 30
-    }
-  ]
-}
-```
-- エラー例:
-  - 500 Internal Server Error — マップ表示データの取得に失敗した場合
-
-## 5. データモデル（主要なリソース）
-database参照
-
-## 6. 認証・権限設計
-- JWTの有効期限: 例 24時間
-- 発行フロー: `POST /store/login` → `token` を返却
-- トークン検証: 署名アルゴリズム、リフレッシュの有無
-
-## 7. エラー仕様
-- 共通エラーフォーマット:
-```json
-{
-  "error": {
-    "code": "INVALID_PARAMS",
-    "message": "パラメータが不正です",
-    "details": { "field": "quantity", "reason": "must be > 0" }
-  }
-}
-```
-- HTTPステータスと例:
-  - 400 Bad Request — パラメータ不足
-  - 401 Unauthorized — トークン無効/期限切れ
-  - 403 Forbidden — 権限不足
-  - 404 Not Found — リソース未発見
-  - 429 Too Many Requests — レート超過
-  - 500 Internal Server Error — サーバーエラー
-
-## 8. バリデーションルール
-- `restaurants/{id}` の `id`: 必須, string, 存在する店舗IDであること
-- `store/login` の `login_id`: 必須, string, 1文字以上
-- `store/login` の `password`: 必須, string, 1文字以上
-- `store/{id}/wait-time` の `current_wait_min`: 必須, integer, 0以上999以下
-- `store/{id}/wait-time` の `current_queue_count`: 必須, integer, 0以上999以下
-- `map/facilities`: 入力値なし, 取得失敗時はエラーを返す
-- 共通ルール:
-  - 未入力項目がある場合は 400 Bad Request を返す
-  - 型が不正な場合は 400 Bad Request を返す
-  - 存在しないIDの場合は 404 Not Found を返す
+## 8. エラー・バリデーション方針
+- 入力チェックは `FormRequest` でまとめる
+- 不正な入力は 400 Bad Request を返す
+- 認証失敗は 401 Unauthorized を返す
+- 権限不足は 403 Forbidden を返す
+- 存在しないIDは 404 Not Found を返す
+- 共通エラーフォーマットの詳細は [docs/api.md](api.md) を参照する
 
 ## 9. 非機能要件・運用
-- 可用性: 学園祭開催時間中は安定稼働を優先する
-- 応答速度: 一覧取得は体感的にすぐ表示できる速度を目標とする
-- ログ: ログイン成功・失敗、待ち時間更新、注文状態変更を記録する
-- 監視: 5xxエラー率、API応答時間、DB接続失敗を監視する
-- バックアップ: MySQLの定期バックアップを取得する
-- デプロイ: APIはLaravel、フロントエンドはNext.js、DBはMySQLを前提に運用する
-- 障害時対応: 画面表示に失敗しても再読み込みで復帰できるようにする
+- 学園祭開催時間中は安定稼働を優先する
+- 一覧取得は体感的にすぐ表示できる速度を目標とする
+- ログイン成功・失敗、待ち時間更新、注文状態変更を記録する
+- 5xxエラー率、API応答時間、DB接続失敗を監視する
+- MySQLの定期バックアップを取得する
+- APIはLaravel、フロントエンドはNext.js、DBはMySQLを前提に運用する
+- 画面表示に失敗しても再読み込みで復帰できるようにする
 
 ## 10. セキュリティ考慮点
 - 認証情報は平文で保存しない
@@ -253,3 +113,8 @@ database参照
 - XSS対策として、表示時にHTMLをそのまま出力しない
 - CSRF対策は管理画面の仕様に応じて有効化する
 - `Authorization` ヘッダや秘密鍵をログに出力しない
+
+## 11. 参考資料
+- [API定義書](api.md)
+- [データベース定義書](database.md)
+- [フロントエンド定義書](frontend.md)
