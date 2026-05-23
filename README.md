@@ -29,7 +29,15 @@ MVPで作る機能:
 
 ## セットアップ手順
 
-各docsを参照
+```
+docker compose build 
+docker compose up -d
+```
+
+### 動かないときに確認
+- 同名containerがあるか
+- 使うportをすでに使用しているか
+
 
 ## チーム内の連絡
 
