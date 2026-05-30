@@ -15,5 +15,7 @@ RUN curl -sS https://getcomposer.org/installer | php \
 # 作業ディレクトリの設定
 WORKDIR /var/www/html
 
+RUN chown -R www-data:www-data /var/www/html
+
 EXPOSE 9000
 CMD ["php-fpm"]

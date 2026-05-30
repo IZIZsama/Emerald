@@ -32,7 +32,53 @@ MVPで作る機能:
 ```
 docker compose build 
 docker compose up -d
+docker compose exec backend composer install --no-interaction --prefer-dist --optimize-autoloader
+```
+### `vendor/autoload.php` がないと言われるとき（artisan/migrate/HTTP 500）
+原因: Composer 依存関係が未インストール。
+
+```
+docker compose exec backend composer install --no-interaction --prefer-dist --optimize-autoloader
+```
+
+設定を反映していない場合:
+
+```
+docker compose down
+docker compose up --build -d
+```
+
+---
+
+### `APPLICATION IN PRODUCTION` が出て `migrate` が止まるとき
+
+```
 docker compose exec backend php artisan migrate
+```
+
+---
+
+### `tempnam()` エラー（HTTP 500）が出たとき
+原因: `storage` / `bootstrap/cache` の書き込み権限がない。
+
+```
+docker compose exec backend sh -c "mkdir -p storage/framework/{views,cache,sessions} storage/logs bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache && chmod -R 775 storage bootstrap/cache"
+```
+
+---
+
+## `MissingAppKeyException`（APP_KEY 未設定）
+原因: `.env` がない、または `APP_KEY` が未生成。
+
+```
+docker compose exec backend sh -c "test -f .env || cp .env.example .env"
+docker compose exec backend php artisan key:generate
+```
+
+必要なら:
+
+```
+docker compose exec backend php artisan config:clear
 ```
 
 ### 動かないときに確認
