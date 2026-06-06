@@ -15,8 +15,8 @@ class MapFacilitiesSeeder extends Seeder
     {
         DB::table('map_facilities')->insert([
             [
-                'store_id' => 1,
-                'name' => 'VRお化け屋敷',
+                'store_id' => 'store-101',
+                'name' => 'KTCカフェ',
                 'type' => 'booth',
                 'floor' => 1,
                 'x' => 120,
@@ -25,35 +25,15 @@ class MapFacilitiesSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'store_id' => 2,
-                'name' => 'カフェ休憩所',
+                'store_id' => 'store-102',
+                'name' => '焼きそば',
                 'type' => 'food',
                 'floor' => 1,
                 'x' => 60,
                 'y' => 140,
                 'created_at' => now(),
                 'updated_at' => now(),
-            ],
-            [
-                'store_id' => 3,
-                'name' => 'ARゲームコーナー',
-                'type' => 'booth',
-                'floor' => 2,
-                'x' => 200,
-                'y' => 100,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-                [
-                'store_id' => 4,
-                'name' => 'グッズ販売',
-                'type' => 'shop',
-                'floor' => 2,
-                'x' => 150,
-                'y' => 150,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
+            ]
         ]);
     }
 }

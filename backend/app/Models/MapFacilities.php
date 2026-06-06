@@ -18,7 +18,7 @@ class MapFacilities extends Model
     ];
 
     protected $casts = [
-        'store_id' => 'integer',
+        'store_id' => 'string',
         'floor' => 'integer',
         'x' => 'integer',
         'y' => 'integer',
