@@ -19,6 +19,7 @@ services:
 
   # Laravel API (バックエンド)
   backend:
+    user: "${UID}:${GID}"
     build:
       context: ./docker/php
       dockerfile: Dockerfile
