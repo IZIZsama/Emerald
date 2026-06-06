@@ -219,20 +219,56 @@ GET /api/v1/map/facilities
 #### 成功レスポンス (200)
 ```json
 {
-	"data": [
-		{
-			"id": "booth-001",
-			"name": "VRお化け屋敷",
-			"x": 120,
-			"y": 80
-		},
-		{
-			"id": "facility-001",
-			"name": "本部",
-			"x": 50,
-			"y": 30
-		}
-	]
+  "data": [
+    {
+      "id": "1",
+      "type": "map_facilities",
+      "attributes": {
+        "store_id": 1,
+        "name": "VRお化け屋敷",
+        "type": "booth",
+        "floor": 1,
+        "x": 120,
+        "y": 80
+      }
+    },
+    {
+      "id": "2",
+      "type": "map_facilities",
+      "attributes": {
+        "store_id": 2,
+        "name": "カフェ休憩所",
+        "type": "food",
+        "floor": 1,
+        "x": 60,
+        "y": 140
+      }
+    },
+    {
+      "id": "3",
+      "type": "map_facilities",
+      "attributes": {
+        "store_id": 3,
+        "name": "ARゲームコーナー",
+        "type": "booth",
+        "floor": 2,
+        "x": 200,
+        "y": 100
+      }
+    },
+    {
+      "id": "4",
+      "type": "map_facilities",
+      "attributes": {
+        "store_id": 4,
+        "name": "グッズ販売",
+        "type": "shop",
+        "floor": 2,
+        "x": 150,
+        "y": 150
+      }
+    }
+  ]
 }
 ```
 
