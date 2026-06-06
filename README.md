@@ -84,6 +84,10 @@ docker compose exec backend php artisan key:generate
 ```
 docker compose exec backend php artisan config:clear
 ```
+```
+docker compose exec backend composer install
+docker compose exec backend php artisan migrate:fresh --seed
+```
 
 ### 動かないときに確認
 - 同名containerがあるか
