@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\AuthenticationException;
 
 class AuthController extends Controller
 {
@@ -19,9 +20,7 @@ class AuthController extends Controller
         $user = User::where('login_id', $request->login_id)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'message' => 'ログインIDまたはパスワードが違います'
-            ], 401);
+            throw new AuthenticationException();
         }
 
         $token = $user->createToken('api-token')->plainTextToken;
