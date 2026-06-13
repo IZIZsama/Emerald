@@ -18,5 +18,6 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
         $this->call(StoreSeeder::class);
         $this->call(MapFacilitiesSeeder::class);
+        $this->call(UserSeeder::class);
     }
 }
